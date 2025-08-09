@@ -37,7 +37,7 @@ Hash table v1: 180,330 usec
   - 0 missing
 ```
 
-Version 1 is actually slower than the base version, which I found surprising at first. The single lock creates a bottleneck when multiple threads try to access the table simultaneously. It's about 2.7x slower than the base version, which shows how much overhead the global lock adds.
+Version 1 is actually slower than the base version, which I found surprising at first. The overhead of creating and managing multiple threads, combined with the single lock bottleneck when multiple threads try to access the table simultaneously, makes it about 2.7x slower than the base version.
 
 ## Second Implementation
 In the `hash_table_v2_add_entry` function, I implemented fine-grained locking where each bucket has its own pthread_mutex_t bucket_lock. This allows multiple threads to access different buckets concurrently.
