@@ -26,29 +26,39 @@ In the `hash_table_v1_add_entry` function, I added a single pthread_mutex_t tabl
 
 ### Performance
 ```shell
-./hash-table-tester -t 4 -s 25000
+./hash-table-tester -t 4 -s 50000
+Generation: 24,904 usec
+Hash table base: 66,791 usec
+  - 0 missing
+Hash table v1: 180,330 usec
+  - 0 missing
 ```
 
-Version 1 is slower than the base version due to the overhead of locking the entire table for every operation. The single lock creates a bottleneck when multiple threads try to access the table simultaneously.
+Version 1 is actually slower than the base version, which I found surprising at first. The single lock creates a bottleneck when multiple threads try to access the table simultaneously. It's about 2.7x slower than the base version, which shows how much overhead the global lock adds.
 
 ## Second Implementation
-In the `hash_table_v2_add_entry` function, I implemented fine-grained locking where each bucket has its own pthread_mutex_t bucket_lock. This allows multiple threads to access different buckets concurrently, improving performance under high contention.
+In the `hash_table_v2_add_entry` function, I implemented fine-grained locking where each bucket has its own pthread_mutex_t bucket_lock. This allows multiple threads to access different buckets concurrently.
 
 ### Performance
 ```shell
-./hash-table-tester -t 4 -s 25000
+./hash-table-tester -t 4 -s 50000
+Generation: 24,904 usec
+Hash table base: 66,791 usec
+  - 0 missing
+Hash table v2: 20,674 usec
+  - 0 missing
 ```
 
-Version 2 shows significant improvement over version 1, especially with more threads. The bucket-level locking reduces contention and allows for better parallelization. However, there's still some overhead from managing multiple mutexes.
+Version 2 turned out much better! It's actually faster than the base version (about 3.2x faster) and way faster than version 1 (8.7x faster). The bucket-level locking really helps reduce contention between threads.
 
 ## Analysis
 
-The fine-grained locking approach in v2 provides better scalability because:
-- Multiple threads can access different buckets simultaneously
-- Reduced contention compared to the single lock in v1
-- Better cache locality for frequently accessed buckets
+The fine-grained locking approach in v2 works well because:
+- Multiple threads can access different buckets at the same time
+- Less contention compared to the single lock in v1
+- Better cache performance for frequently accessed buckets
 
-The trade-off is increased memory usage (one mutex per bucket) and slightly more complex code, but the performance benefits outweigh these costs for concurrent workloads.
+The main trade-off is using more memory (one mutex per bucket) and the code is a bit more complex, but the performance improvement is definitely worth it. It's interesting that v2 is faster than the base version - I think this is because the base version doesn't use threads at all, while v2 can take advantage of multiple cores effectively.
 
 ## Cleaning up
 ```shell
