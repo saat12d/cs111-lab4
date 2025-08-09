@@ -49,7 +49,7 @@ Hash table v2: 20,674 usec
   - 0 missing
 ```
 
-Version 2 turned out much better! It's actually faster than the base version (about 3.2x faster) and way faster than version 1 (8.7x faster). The bucket-level locking really helps reduce contention between threads.
+Version 2 turned out much better! It's actually faster than the base version and way faster than version 1. The bucket-level locking really helps reduce contention between threads.
 
 ## Analysis
 
