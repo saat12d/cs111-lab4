@@ -1,5 +1,8 @@
 # Hash Hash Hash
 
+UID - 706162648
+Name - Saatvik Sharma
+
 This lab implements two different thread-safe hash table implementations using pthreads. The first version uses a single table-wide lock, while the second version uses fine-grained bucket-level locking for better concurrency.
 
 ## Building
